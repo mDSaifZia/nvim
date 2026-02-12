@@ -8,6 +8,7 @@ vim.opt.cursorline=true
 vim.opt.wrap=false
 vim.opt.scrolloff=10
 vim.opt.sidescrolloff=8
+vim.opt.virtualedit="all"
 
 
 vim.opt.smarttab=true
@@ -83,8 +84,6 @@ vim.g.maplocalleader=" "
 
 vim.keymap.set("n", "<leader>c", ":nohlsearch<CR>", { desc = "Clear search highlights" })
 vim.keymap.set("n", "Y", "y$", { desc = "Yank to end of line" })
-vim.keymap.set("n", "<leader>c", ":nohlsearch<CR>", { desc = "Clear search highlights" })
-vim.keymap.set("n", "Y", "y$", { desc = "Yank to end of line" })
 vim.keymap.set("n", "n", "nzzzv", {desc = "Next search result (centered)" })
 
 vim.keymap.set("n", "<leader>bn", ":bnext<CR>", { desc = "Next buffer" })
@@ -154,13 +153,6 @@ vim.api.nvim_create_autocmd("TermClose", {
         vim.cmd('bprevious')
         vim.cmd('bd! #')
     end,
-})
-
-vim.api.nvim_create_autocmd("VimEnter", {
-    group=augroup,
-    callback=function()
-        vim.cmd("vsplit")
-    end
 })
 
 vim.opt.wildmenu=true
