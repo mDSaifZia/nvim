@@ -16,7 +16,6 @@ vim.opt.tabstop=4
 vim.opt.softtabstop=4
 vim.opt.shiftwidth=4
 vim.opt.expandtab=true
-vim.opt.smartindent=true
 vim.opt.autoindent=true
 
 vim.opt.ignorecase=true
@@ -114,7 +113,7 @@ vim.keymap.set("n", "<leader>e", ":Explore<CR>", { desc = "Open file explorer" }
 vim.keymap.set("n", "<leader>ff", ":find ", { desc = "Find file" })
 
 vim.keymap.set("n", "<leader>rc", ":e $MYVIMRC<CR>", { desc = "Edit config" })
-vim.keymap.set("n", "<leader>rl", ":so $MYVIMRC<CR>", { desc = "Reload config" })
+vim.keymap.set("n", "<leader>rl", ":so $MYVIMRC<CR>", { desc = "Reload config" })    
 vim.keymap.set("n", "J", "mzJ`z", { desc = "Join lines and keep cursor position" })
 vim.keymap.set("n", "<leader>t", ":term<CR>", {desc = "Open terminal shortcut" })
 
@@ -194,8 +193,38 @@ local function find_corresponding_file()
     end
 end
 
+vim.api.nvim_create_autocmd("FileType", {
+    group = augroup,
+    pattern = {"c", "cpp"},
+    callback = function()
+        -- Casey Muratori's C++ indentation style
+        vim.opt_local.cindent = true
+        vim.opt_local.cinoptions = {
+            "l1",      -- align with case label (case-label: 4)
+            ":4",      -- indent case body by 4 (statement-case-intro: 4)
+            "g0",      -- no indent for C++ scope declarations (access-label: -4 effect)
+            "h-4",     -- indent access labels (public:, private:) -4 from class
+            "N-s",     -- don't indent namespaces
+            "(0",      -- align with opening parenthesis (arglist-close: c-lineup-arglist)
+            "Ws",      -- don't indent after unclosed ( if it's last on line
+            "k0",      -- align } of if/for on same column as if/for keyword
+            "t0",      -- don't indent function return type
+            "+4",      -- continuation lines indent by 4
+            "c4",      -- indent comment lines by 4 from comment opener
+            "C1",      -- indent comments that follow code by 1 shiftwidth
+            "}0",      -- align closing brace with opening brace
+            "w1",      -- check for unclosed ( on previous line
+            "m1",      -- align closing ) with opening line
+            "j1",      -- properly indent Java/JavaScript/C# anonymous classes
+        }
+
+        vim.opt_local.smartindent = false  -- cindent handles this
+    end,
+})
+
 vim.keymap.set('n', '<leader>a', find_corresponding_file, { desc = 'Switch to corresponding file' })
 
 vim.keymap.set('n', 'gd', '<C-]>', { desc = 'Jump to tag definition' })
 vim.keymap.set('n', 'gb', '<C-t>', { desc = 'Jump back from tag' })
 vim.keymap.set('n', 'g]', 'g]', { desc = 'List all tags' })
+
