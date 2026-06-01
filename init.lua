@@ -1,7 +1,7 @@
 -- config inspired by Radley E. Sidwell-lewis
 -- https://github.com/radleylewis/nvim-lite/blob/master/init.lua
 
-vim.cmd.colorscheme("sorbet")
+vim.cmd.colorscheme("catppuccin")
 vim.opt.number=true
 vim.opt.relativenumber=true
 vim.opt.cursorline=true
@@ -9,7 +9,6 @@ vim.opt.wrap=false
 vim.opt.scrolloff=10
 vim.opt.sidescrolloff=8
 vim.opt.virtualedit="all"
-
 
 vim.opt.smarttab=true
 vim.opt.tabstop=4
@@ -63,14 +62,7 @@ vim.opt.path:append("**")
 vim.opt.selection="exclusive"
 vim.opt.modifiable=true
 vim.opt.encoding="UTF-8"
-vim.opt.guicursor = {
-    "n-v-c:block",
-    "i-ci-ve:block",
-    "r-cr:hor20",
-    "o:hor50",
-    "a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor",
-    "sm:block-blinkwait175-blinkoff150-blinkon175"
-}
+vim.opt.guicursor = "a:block-blinkon0"
 
 vim.opt.foldmethod="expr"
 vim.opt.foldexpr="nvim_treesitter#foldexpr()"
@@ -129,29 +121,6 @@ vim.api.nvim_create_autocmd("TextYankPost", {
     group=augroup,
     callback=function()
         vim.highlight.on_yank()
-    end,
-})
-
-vim.api.nvim_create_autocmd("BufReadPost", {
-    group=augroup,
-    callback=function()
-        local mark=vim.api.nvim_buf_get_mark(0, '"')
-        local lcount=vim.api.nvim_buf_line_count(0)
-        local line=mark[1]
-        local ft=vim.bo.filetype
-        if line>0 and line<=lcount
-            and vim.fn.index({ "commit", "gitrebase", "xxd" }, ft)==-1
-            and not vim.o.diff then
-            pcall(vim.api.nvim_win_set_cursor, 0, mark)
-        end
-    end,
-})
-
-vim.api.nvim_create_autocmd("TermClose", {
-    group=augroup,
-    callback = function()
-        vim.cmd('bprevious')
-        vim.cmd('bd! #')
     end,
 })
 
@@ -227,4 +196,3 @@ vim.keymap.set('n', '<leader>a', find_corresponding_file, { desc = 'Switch to co
 vim.keymap.set('n', 'gd', '<C-]>', { desc = 'Jump to tag definition' })
 vim.keymap.set('n', 'gb', '<C-t>', { desc = 'Jump back from tag' })
 vim.keymap.set('n', 'g]', 'g]', { desc = 'List all tags' })
-
