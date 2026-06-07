@@ -1,5 +1,6 @@
--- config inspired by Radley E. Sidwell-lewis
+-- config inspired by Radley E. Sidwell-lewis + casey's .emacs
 -- https://github.com/radleylewis/nvim-lite/blob/master/init.lua
+-- https://github.com/ecxr/handmadehero/blob/master/misc/.emacs
 
 vim.cmd.colorscheme("catppuccin")
 vim.opt.number=true
@@ -27,8 +28,8 @@ vim.opt.signcolumn="yes"
 vim.opt.showmatch=true
 vim.opt.matchtime=2
 vim.opt.cmdheight=1
-vim.opt.completeopt="menuone,noinsert,noselect"
-vim.opt.pumheight=10
+vim.opt.completeopt =''
+vim.opt.complete='.,w,b,u,t'
 vim.opt.winblend=0
 vim.opt.conceallevel=0
 vim.opt.concealcursor=""
@@ -75,6 +76,7 @@ vim.g.mapleader=" "
 vim.g.maplocalleader=" "
 
 vim.keymap.set("n", "<leader>c", ":nohlsearch<CR>", { desc = "Clear search highlights" })
+vim.keymap.set({"n", "v"}, "<leader>y", '"+y', { desc = "Yank to clipboard" })
 vim.keymap.set("n", "Y", "y$", { desc = "Yank to end of line" })
 vim.keymap.set("n", "n", "nzzzv", {desc = "Next search result (centered)" })
 
@@ -109,6 +111,9 @@ vim.keymap.set("n", "<leader>rl", ":so $MYVIMRC<CR>", { desc = "Reload config" }
 vim.keymap.set("n", "J", "mzJ`z", { desc = "Join lines and keep cursor position" })
 vim.keymap.set("n", "<leader>t", ":term<CR>", {desc = "Open terminal shortcut" })
 
+vim.keymap.set('i', '<Tab>',   '<C-n>', { noremap = true })
+vim.keymap.set('i', '<S-Tab>', '<C-p>', { noremap = true })
+
 vim.keymap.set("n", "<leader>pa", function()
     local path = vim.fn.expand("%:p")
     vim.fn.setreg("+", path)
@@ -133,66 +138,90 @@ vim.opt.diffopt:append("linematch:60")
 vim.opt.redrawtime=10000
 vim.opt.maxmempattern=20000
 
--- inspired by cmuratori's emacs C++ config
-local function find_corresponding_file()
-    local current_file=vim.fn.expand('%')
-    local base_name=vim.fn.expand('%:r')
-    local corresponding_file=nil
-
-    if current_file:match('%.c$') then
-        corresponding_file=base_name .. '.h'
-    elseif current_file:match('%.h$') then
-        if vim.fn.filereadable(base_name .. '.c') == 1 then
-            corresponding_file=base_name .. '.c'
-        else
-            corresponding_file=base_name .. '.cpp'
-        end
-    elseif current_file:match('%.hin$') then
-        corresponding_file=base_name .. '.cin'
-    elseif current_file:match('%.cin$') then
-        corresponding_file=base_name .. '.hin'
-    elseif current_file:match('%.cpp$') then
-        corresponding_file=base_name .. '.h'
-    end
-
-    if corresponding_file then
-        vim.cmd('edit ' .. vim.fn.fnameescape(corresponding_file))
-    else
-        print('Unable to find a corresponding file')
-    end
-end
-
 vim.api.nvim_create_autocmd("FileType", {
     group = augroup,
     pattern = {"c", "cpp"},
     callback = function()
-        -- Casey Muratori's C++ indentation style
+        -- indentation
         vim.opt_local.cindent = true
         vim.opt_local.cinoptions = {
-            "l1",      -- align with case label (case-label: 4)
-            ":4",      -- indent case body by 4 (statement-case-intro: 4)
-            "g0",      -- no indent for C++ scope declarations (access-label: -4 effect)
-            "h-4",     -- indent access labels (public:, private:) -4 from class
-            "N-s",     -- don't indent namespaces
-            "(0",      -- align with opening parenthesis (arglist-close: c-lineup-arglist)
-            "Ws",      -- don't indent after unclosed ( if it's last on line
-            "k0",      -- align } of if/for on same column as if/for keyword
-            "t0",      -- don't indent function return type
-            "+4",      -- continuation lines indent by 4
-            "c4",      -- indent comment lines by 4 from comment opener
-            "C1",      -- indent comments that follow code by 1 shiftwidth
-            "}0",      -- align closing brace with opening brace
-            "w1",      -- check for unclosed ( on previous line
-            "m1",      -- align closing ) with opening line
-            "j1",      -- properly indent Java/JavaScript/C# anonymous classes
+            "l1", ":4", "g0", "h-4", "N-s",
+            "(0", "Ws", "k0", "t0", "+4",
+            "c4", "C1", "}0", "w1", "m1", "j1",
         }
+        vim.opt_local.smartindent = false
 
-        vim.opt_local.smartindent = false  -- cindent handles this
+        -- include jumping
+        vim.opt_local.includeexpr = "substitute(v:fname,'[<>]','','g')"
+        vim.opt_local.suffixesadd = ".h"
+
+        -- compute once
+        local is_win32 = vim.fn.has('win32') == 1
+        local build_script = is_win32 and 'build.bat' or 'build.sh'
+
+        -- platform include paths
+        if is_win32 then
+            local sdk_ver  = "C:/PROGRA~2/WI3CF2~1/10/Include/100261~1.0"
+            local msvc_ver = "C:/PROGRA~1/MIB055~1/18/COMMUN~1/VC/Tools/MSVC/1451~1.362"
+            if vim.fn.isdirectory(sdk_ver) == 0 then
+                vim.notify("[init.lua] Windows SDK not found: " .. sdk_ver, vim.log.levels.ERROR)
+                return
+            end
+            if vim.fn.isdirectory(msvc_ver) == 0 then
+                vim.notify("[init.lua] MSVC not found: " .. msvc_ver, vim.log.levels.ERROR)
+                return
+            end
+            vim.opt_local.path:append(sdk_ver .. "/um")
+            vim.opt_local.path:append(sdk_ver .. "/shared")
+            vim.opt_local.path:append(sdk_ver .. "/ucrt")
+            vim.opt_local.path:append(msvc_ver .. "/include")
+        else
+            vim.opt_local.path:append("/usr/include/**")
+            vim.opt_local.path:append("/usr/local/include/**")
+        end
+
+        vim.keymap.set('n', 'gf', function()
+            local fname = vim.fn.getline('.'):match('#%s*include%s*[<"]([^>"]+)[>"]')
+            if fname then
+                vim.cmd('find ' .. fname)
+            else
+                vim.cmd('normal! gf')
+            end
+        end, { buffer = true, desc = 'Jump to include header' })
+
+        vim.keymap.set('n', '<leader>a', function()
+            local current_file = vim.fn.expand('%')
+            local base_name    = vim.fn.expand('%:r')
+            local corresponding_file = nil
+            if current_file:match('%.c$') then
+                corresponding_file = base_name .. '.h'
+            elseif current_file:match('%.h$') then
+                local c = base_name .. '.c'
+                corresponding_file = vim.fn.filereadable(c) == 1 and c or base_name .. '.cpp'
+            elseif current_file:match('%.hin$') then
+                corresponding_file = base_name .. '.cin'
+            elseif current_file:match('%.cin$') then
+                corresponding_file = base_name .. '.hin'
+            elseif current_file:match('%.cpp$') then
+                corresponding_file = base_name .. '.h'
+            end
+            if corresponding_file and vim.fn.filereadable(corresponding_file) == 1 then
+                vim.cmd('edit ' .. vim.fn.fnameescape(corresponding_file))
+            else
+                vim.notify('[init.lua] Unable to find a corresponding file', vim.log.levels.WARN)
+            end
+        end, { buffer = true, desc = 'Switch to corresponding file' })
+
+        vim.keymap.set('n', '<leader>ct', function()
+            vim.cmd('!ctags -R --c++-kinds=+p --fields=+iaS --extras=+q .')
+            vim.notify('[init.lua] Tags generated', vim.log.levels.INFO)
+        end, { buffer = true, desc = 'Generate ctags' })
+
+        vim.keymap.set('n', '<A-n>', ':cnext<CR>',  { buffer = true, desc = 'Next error' })
+        vim.keymap.set('n', '<A-p>', ':cprev<CR>',  { buffer = true, desc = 'Previous error' })
+        vim.keymap.set('n', '<A-f>', ':cfirst<CR>', { buffer = true, desc = 'First error' })
+        vim.keymap.set('n', 'gd',   '<C-]>',        { buffer = true, desc = 'Jump to tag definition' })
+        vim.keymap.set('n', 'gb',   '<C-t>',        { buffer = true, desc = 'Jump back from tag' })
+        vim.keymap.set('n', 'g]',   'g]',           { buffer = true, desc = 'List all tags' })
     end,
 })
-
-vim.keymap.set('n', '<leader>a', find_corresponding_file, { desc = 'Switch to corresponding file' })
-
-vim.keymap.set('n', 'gd', '<C-]>', { desc = 'Jump to tag definition' })
-vim.keymap.set('n', 'gb', '<C-t>', { desc = 'Jump back from tag' })
-vim.keymap.set('n', 'g]', 'g]', { desc = 'List all tags' })
