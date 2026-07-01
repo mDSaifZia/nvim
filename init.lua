@@ -25,7 +25,6 @@ vim.opt.incsearch=true
 
 vim.opt.termguicolors=true
 vim.opt.signcolumn="yes"
-vim.opt.showmatch=true
 vim.opt.matchtime=2
 vim.opt.cmdheight=1
 vim.opt.completeopt =''
@@ -33,7 +32,6 @@ vim.opt.complete='.,w,b,u,t'
 vim.opt.winblend=0
 vim.opt.conceallevel=0
 vim.opt.concealcursor=""
-vim.opt.lazyredraw=true
 vim.opt.synmaxcol=300
 vim.opt.fillchars={eob=" "}
 
@@ -130,8 +128,10 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 vim.opt.wildmenu=true
-vim.opt.wildmode="longest:full,full"
-vim.opt.wildignore:append({"*.o", "*.obj", "*.pyc", "*.class", "*.jar"})
+vim.opt.wildmode=longest,full
+vim.opt.wildignore:append({"*.o", "*.obj", "*.pyc", "*.class", 
+                           "*.jar", "*.ilk", "*.exe", "*.pdb",
+                           "*.rdbg", "*.obj", "*.map"})
 
 vim.opt.diffopt:append("linematch:60")
 
@@ -142,7 +142,6 @@ vim.api.nvim_create_autocmd("FileType", {
     group = augroup,
     pattern = {"c", "cpp"},
     callback = function()
-        -- indentation
         vim.opt_local.cindent = true
         vim.opt_local.cinoptions = {
             "l1", ":4", "g0", "h-4", "N-s",
@@ -151,15 +150,11 @@ vim.api.nvim_create_autocmd("FileType", {
         }
         vim.opt_local.smartindent = false
 
-        -- include jumping
         vim.opt_local.includeexpr = "substitute(v:fname,'[<>]','','g')"
         vim.opt_local.suffixesadd = ".h"
 
-        -- compute once
         local is_win32 = vim.fn.has('win32') == 1
-        local build_script = is_win32 and 'build.bat' or 'build.sh'
 
-        -- platform include paths
         if is_win32 then
             local sdk_ver  = "C:/PROGRA~2/WI3CF2~1/10/Include/100261~1.0"
             local msvc_ver = "C:/PROGRA~1/MIB055~1/18/COMMUN~1/VC/Tools/MSVC/1451~1.362"
