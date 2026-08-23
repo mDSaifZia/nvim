@@ -3,17 +3,13 @@
 -- >> https://github.com/ecxr/handmadehero/blob/master/misc/.emacs
 
 vim.cmd.colorscheme("catppuccin")
-vim.opt.number=true
-vim.opt.relativenumber=true
 vim.opt.cursorline=true
 vim.opt.wrap=false
-vim.opt.scrolloff=10
-vim.opt.sidescrolloff=8
 
-vim.opt.smarttab=true
 vim.opt.tabstop=4
 vim.opt.softtabstop=4
 vim.opt.shiftwidth=4
+vim.opt.smarttab=true
 vim.opt.expandtab=true
 vim.opt.autoindent=true
 
@@ -23,8 +19,6 @@ vim.opt.hlsearch=false
 vim.opt.incsearch=true
 
 vim.opt.termguicolors=true
-vim.opt.signcolumn="yes"
-vim.opt.matchtime=2
 vim.opt.cmdheight=1
 vim.opt.completeopt =''
 vim.opt.complete='.,w,b,u,t'
@@ -46,7 +40,7 @@ vim.opt.autowrite=false
 vim.opt.hidden=true
 vim.opt.errorbells=false
 vim.opt.backspace="indent,eol,start"
-vim.opt.autochdir=true
+vim.opt.autochdir=false
 vim.opt.iskeyword:append("-")
 vim.opt.path:append("**")
 vim.opt.selection="exclusive"
@@ -104,7 +98,6 @@ vim.keymap.set('i', '<Tab>',   '<C-n>', { noremap = true })
 vim.keymap.set('i', '<S-Tab>', '<C-p>', { noremap = true })
 
 local augroup=vim.api.nvim_create_augroup("UserConfig", {})
-
 vim.api.nvim_create_autocmd("TextYankPost", {
     group=augroup,
     callback=function()
@@ -114,38 +107,51 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 
 vim.opt.wildmenu=true
 vim.opt.wildmode=longest,full
-vim.opt.wildignore:append({"*.o", "*.obj", "*.pyc", "*.class", 
-"*.jar", "*.ilk", "*.exe", "*.pdb",
-"*.rdbg", "*.obj", "*.map"})
+vim.opt.wildignore:append({
+    "*.o", "*.obj", "*.pyc", "*.class", 
+    "*.jar", "*.ilk", "*.exe", "*.pdb",
+    "*.rdbg", "*.obj", "*.map"
+})
 
 vim.opt.diffopt:append("linematch:60")
 
 vim.opt.maxmempattern=20000
 
+vim.opt.exrc=true
 vim.api.nvim_create_autocmd("FileType", {
     group = augroup,
     pattern = {"c", "cpp"},
     callback = function()
-        vim.opt_local.cindent = true
-        vim.opt_local.cinoptions = {
-            "l1", ":4", "g0", "h-4", "N-s",
-            "(0", "Ws", "k0", "t0", "+4",
-            "c4", "C1", "}0", "w1", "m1", "j1",
-        }
         vim.opt_local.smartindent = false
+        vim.opt.tabstop=2
+        vim.opt.softtabstop=2
+        vim.opt.shiftwidth=2
+        vim.opt_local.cindent = true
+        vim.opt_local.cinoptions = {"=0", "t0", "(0", "c2", "C1", "j1"}
 
         vim.keymap.set('n', '<leader>ct', function()
-            vim.cmd('!ctags -R --c++-kinds=+p --fields=+iaS --extras=+q .')
+            vim.cmd('!ctags -R --languages=c,c++ .')
             vim.notify('[init.lua] Tags generated', vim.log.levels.INFO)
         end, { buffer = true, desc = 'Generate ctags' })
 
-        vim.keymap.set('n', 'gd',   '<C-]>',        { buffer = true, desc = 'Jump to tag definition' })
-        vim.keymap.set('n', 'gb',   '<C-t>',        { buffer = true, desc = 'Jump back from tag' })
-        vim.keymap.set('n', 'g]',   'g]',           { buffer = true, desc = 'List all tags' })
 
-        -- Need to setup quickfix (makeprg) to work like Emacs Compilation Mode for this to be useful
-        -- vim.keymap.set('n', '<A-n>', ':cnext<CR>',  { buffer = true, desc = 'Next error' })
-        -- vim.keymap.set('n', '<A-p>', ':cprev<CR>',  { buffer = true, desc = 'Previous error' })
-        -- vim.keymap.set('n', '<A-f>', ':cfirst<CR>', { buffer = true, desc = 'First error' })
+        if vim.fn.has("win32") == 1 then
+            vim.opt.shell = "cmd.exe"
+            vim.opt.shellcmdflag = "/s /c"
+            vim.opt.shellredir = ">%s 2>&1"
+            vim.opt.shellquote = ""
+            vim.opt.shellxquote = '"'
+        end
     end,
-}
+})
+
+vim.keymap.set('n', 'gd',   '<C-]>',               { desc = 'Jump to tag definition' })
+vim.keymap.set('n', 'gb',   '<C-t>',               { desc = 'Jump back from tag' })
+vim.keymap.set('n', '<A-m>', ':make<CR>',          { desc = 'Compile' })
+vim.keymap.set('n', '<A-p>', ':cprev<CR>',         { desc = 'Previous error' })
+vim.keymap.set('n', '<A-f>', ':cfirst<CR>',        { desc = 'First error' })
+vim.keymap.set('n', '<A-n>', ':cnext<CR>',         { desc = 'Next error' })
+vim.keymap.set('n', '<A-r>', ':lgrep <cword><CR>', { desc = 'Grep project for word under cursor' })
+vim.keymap.set('n', '<A-P>', ':lprev<CR>',         { desc = 'Previous error' })
+vim.keymap.set('n', '<A-F>', ':lfirst<CR>',        { desc = 'First error' })
+vim.keymap.set('n', '<A-N>', ':lnext<CR>',         { desc = 'Next error' })
